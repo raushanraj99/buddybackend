@@ -21,8 +21,8 @@ app.use(cors({
 mongoose.connect(process.env.DB_URL,{
    dbName:"native",
 })
-.then(()=>{
-   console.log('Database connected sucessfully');
+.then((c)=>{
+   console.log(`Database connected sucessfully ${c.connection.host}`,);
 })
 .catch(()=>{
    console.log("Failed to connect to databse ");
