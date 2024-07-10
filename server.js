@@ -12,7 +12,7 @@ dotenv.config({
 app.use(express.json())
 app.use(cors({
    origin:process.env.FRONTEND_URL,
-   methods:["GET","POST"],
+   methods:["GET","POST","PUT","DELETE"],
    credentials:true
 }))
 
@@ -24,8 +24,8 @@ mongoose.connect(process.env.DB_URL,{
 .then((c)=>{
    console.log(`Database connected sucessfully ${c.connection.host}`,);
 })
-.catch(()=>{
-   console.log("Failed to connect to databse ");
+.catch((err)=>{
+   console.log("Failed to connect to database ",err);
 })
 
 // database models 
