@@ -133,75 +133,79 @@ const sendEmail = async (req,res) =>{
 
   // otp generation
   const otp = Math.floor((Math.random()*(9990-1200)+1)+1200);
-
-  res.status(201).json({
-    success:true,
-    message:"Mail sent successsful",
-    otp:otp
-  })
   
   // nodemailer
 
-  // const transporter = nodemailer.createTransport({
-  //   host: "smtp.gmail.com",
-  //   port: 587,
-  //   secure: false, // Use `true` for port 465, `false` for all other ports
-  //   auth: {
-  //     user: "itsraushanraj99@gmail.com",
-  //     pass: "neucxkimmyjatjey",
-  //   },
-  // });
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // Use `true` for port 465, `false` for all other ports
+    auth: {
+      user: "itsraushanraj99@gmail.com",
+      pass: "neucxkimmyjatjey",
+    },
+  });
 
-  //   await transporter.sendMail({
-  //     from: "itsraushanraj99@gmail.com",
-  //     to: user?.email, 
-  //     subject: "OTP for Account Reset at Native Buddy", 
-  //     text: `Hello, ${user?.name} You have requested for the reset password please enter the Below OTP.  ${otp}`, 
-  //     // html: `<b>${otp}</b>`, // html body
-  // }).then((resp)=>{
-  //   console.log("message sent successfully",resp.messageId);
-  //   res.status(201).json({
-  //     success:true,
-  //     otp:otp,
-  //     message:"Message sent sucessfully",
+    await transporter.sendMail({
+      from: "itsraushanraj99@gmail.com",
+      to: user?.email, 
+      subject: "OTP for Account Reset at Native Buddy", 
+      text: `Hello, ${user?.name} You have requested for the reset password please enter the Below OTP.  ${otp}`, 
+      // html: `<b>${otp}</b>`, // html body
+  }).then((resp)=>{
+    console.log("message sent successfully",resp.messageId);
+    res.status(201).json({
+      success:true,
+      otp:otp,
+      message:"Message sent sucessfully",
 
-  //   })
-  // }).catch((error)=>{
-  //   console.log("Failed message sent !!",error.message);
-  //   res.status(401).json({
-  //     success:true,
-  //     message:error.message
-  //   })
-  // })
+    })
+  }).catch((error)=>{
+    console.log("Failed message sent !!",error.message);
+   return res.status(401).json({
+      success:true,
+      message:error.message
+    }) 
+  })
 }
 
 
 const passwordupdate =async (req,res)=>{
+
   console.log("password update put request");
   const {email,newPassword} = req.body;
-
+  console.log("req. body password updat e; ",req.body)
   const user = await User.findOne({ email });
-  console.log("user : ",user)
+  console.log("before save user : ",user)
+  try{
+    
+    if(!user){
+      return res.status(401).json({
+        success:false,
+        message:"Email is not registered"
+      })
+    }else{
+      const hashedPassword = await bcrypt.hash(newPassword,10);
+      console.log("hashed password reset : ",hashedPassword);
 
-  const hashedPassword = await bcrypt.hash(newPassword,10);
-
-  
- 
-  await User.updateOne(
-    { email: email },
-    { $set: { password: hashedPassword } }
-  );
-
-
-  
-  return res.status(201).json({
-    success: true,
-    message: "Password updated successfully",
-  });
-
+      await User.updateOne(
+        { email: email },
+        { $set: { password: hashedPassword } }
+      );
+      // await User.save();
+      console.log("after ssave user : ",user)
+      return res.status(201).json({
+        success: true,
+        message: "Password updated successfully",
+      });
+      
+    }
+  }catch(error){
+      console.log("password update error ",error);
+  }
 
 }
-
+ 
 
 // post request to forget password
 
