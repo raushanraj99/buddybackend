@@ -1,9 +1,8 @@
-const app = require("./app.js")
-const connetDB = require("./data/database.js")
+const app = require("./app.js");
+const connetDB = require("./data/database.js");
 
-connetDB
+connetDB;
 
-
-app.listen(process.env.PORT,()=>{
-   console.log(`server is running on port ${process.env.PORT}`);
-})
+app.listen(process.env.PORT, () => {
+  console.log(`server is running on port ${process.env.PORT}`);
+});

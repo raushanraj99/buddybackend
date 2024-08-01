@@ -1,7 +1,7 @@
 const User = require("../model/user");
 const bcrypt = require("bcrypt");
 const { sendcookie } = require("../utils/features");
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 const register = async (req, res) => {
   try {
@@ -22,7 +22,11 @@ const register = async (req, res) => {
       sendcookie(user, res, "registeration sucessful", 201);
     }
   } catch (err) {
-    console.log("Failed to register", err);
+    // console.log("server error in registration", err);
+    return res.status(401).json({
+      success: true,
+      message: "Registration Internal server Error",
+    });
   }
 };
 
@@ -49,7 +53,11 @@ const login = async (req, res) => {
     // console.log("login")
     sendcookie(user, res, "Logged in successfull", 200);
   } catch (err) {
-    console.log("Error in login ", err);
+    // console.log("Error in login ", err);
+    res.statu(401).json({
+      sucess: true,
+      message: "Login server Error",
+    });
   }
 };
 
@@ -78,7 +86,11 @@ const logout = (req, res) => {
         message: "Logged out successfully !!!",
       });
   } catch (err) {
-    console.log("Logout error ", err);
+    // console.log("Logout error ", err);
+    return res.status(401).json({
+      success: true,
+      message: "Logout Internal server Error",
+    });
     // res.redirect('/');
   }
 };
@@ -115,7 +127,7 @@ const resetpassword = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log("servere failure at reset pass : ", err);
+    // console.log("servere failure at reset pass : ", err);
     res.status(400).json({
       success: true,
       messsage: "server failure to reset password",
@@ -123,17 +135,16 @@ const resetpassword = async (req, res) => {
   }
 };
 
-// send email post request 
-const sendEmail = async (req,res) =>{
-  console.log("send email : req.body",req.body.email);
-  const {email} = req.body;
-  const user =await User.findOne({email});
-  console.log("User email from db : ",user?.email);
-  
+// send email post request
+const sendEmail = async (req, res) => {
+  console.log("send email : req.body", req.body.email);
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  console.log("User email from db : ", user?.email);
 
   // otp generation
-  const otp = Math.floor((Math.random()*(9990-1200)+1)+1200);
-  
+  const otp = Math.floor(Math.random() * (9990 - 1200) + 1 + 1200);
+
   // nodemailer
 
   const transporter = nodemailer.createTransport({
@@ -146,67 +157,69 @@ const sendEmail = async (req,res) =>{
     },
   });
 
-    await transporter.sendMail({
+  await transporter
+    .sendMail({
       from: "itsraushanraj99@gmail.com",
-      to: user?.email, 
-      subject: "OTP for Account Reset at Native Buddy", 
-      text: `Hello, ${user?.name} You have requested for the reset password please enter the Below OTP.  ${otp}`, 
+      to: user?.email,
+      subject: "OTP for Account Reset at Native Buddy",
+      text: `Hello, ${user?.name} You have requested for the reset password please enter the Below OTP.  ${otp}`,
       // html: `<b>${otp}</b>`, // html body
-  }).then((resp)=>{
-    console.log("message sent successfully",resp.messageId);
-    res.status(201).json({
-      success:true,
-      otp:otp,
-      message:"Message sent sucessfully",
-
     })
-  }).catch((error)=>{
-    console.log("Failed message sent !!",error.message);
-   return res.status(401).json({
-      success:true,
-      message:error.message
-    }) 
-  })
-}
-
-
-const passwordupdate =async (req,res)=>{
-
-  console.log("password update put request");
-  const {email,newPassword} = req.body;
-  console.log("req. body password updat e; ",req.body)
-  const user = await User.findOne({ email });
-  console.log("before save user : ",user)
-  try{
-    
-    if(!user){
+    .then((resp) => {
+      // console.log("message sent successfully",resp.messageId);
+      res.status(201).json({
+        success: true,
+        otp: otp,
+        message: "Message sent sucessfully",
+      });
+    })
+    .catch((error) => {
+      // console.log("Failed message sent !!",error.message);
       return res.status(401).json({
-        success:false,
-        message:"Email is not registered"
-      })
-    }else{
-      const hashedPassword = await bcrypt.hash(newPassword,10);
-      console.log("hashed password reset : ",hashedPassword);
+        success: true,
+        message: error.message,
+      });
+    });
+};
 
+const passwordupdate = async (req, res) => {
+  const { email, newPassword } = req.body;
+  const user = await User.findOne({ email });
+
+  try {
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Email is not registered",
+      });
+    } else {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
       await User.updateOne(
         { email: email },
         { $set: { password: hashedPassword } }
       );
-      // await User.save();
-      console.log("after ssave user : ",user)
+
       return res.status(201).json({
         success: true,
         message: "Password updated successfully",
       });
-      
     }
-  }catch(error){
-      console.log("password update error ",error);
+  } catch (error) {
+    return res.status(401).json({
+      success: true,
+      message: "update password error",
+    });
   }
-
-}
- 
+};
 
 // post request to forget password
 
-module.exports = { register, login, logout, userprofile, resetpassword,sendEmail,passwordupdate };
+module.exports = {
+  register,
+  login,
+  logout,
+  userprofile,
+  resetpassword,
+  sendEmail,
+  passwordupdate,
+};
